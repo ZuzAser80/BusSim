@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using JetBrains.Annotations;
 using TMPro;
 using Unity.VisualScripting;
@@ -22,7 +23,7 @@ public class WaypointNavigator : MonoBehaviour
 {
     [SerializeField] private Button startSim;
     [SerializeField] private Car bus;
-    [SerializeField] private Car car;
+    [SerializeField] private Car _carPrefab;
     [SerializeField] private NodeManipulator nodeManipulator;
     [SerializeField] private TMP_InputField cars_inputfield;
     public Node Destination;
@@ -40,6 +41,7 @@ public class WaypointNavigator : MonoBehaviour
         //stops = FindObjectsByType<Node>(FindObjectsSortMode.None).ToList();
     }
 
+    #region Neighbours operations
     public List<Node> getAvailableNeighbours(Node node) {
         List<Node> res = new List<Node>();
         availableNodes.FindAll(x => x.parentNode == node).ForEach(x => res.Add(x.connectedNode));
@@ -51,6 +53,7 @@ public class WaypointNavigator : MonoBehaviour
         nodes.FindAll(x => x.parentNode == node).ForEach(x => res.Add(x.connectedNode));
         return res;
     }
+    #endregion
 
     void Update()
     {
@@ -68,6 +71,7 @@ public class WaypointNavigator : MonoBehaviour
         nodes.Where(x => carsDictionary[x] > 2).ToList().ForEach(x => availableNodes.Remove(x));
         nodes.Where(x => carsDictionary[x] <= 2).ToList().ForEach(x => availableNodes.Add(x));
         //SORT BY PRIORITY AND THEN PATHFIND FOR EVERY BUS
+        //MAKE THIS METHOD BE CALLED ONCE PER SECOND
         foreach(var bus in buses) {
             bus.Init(delegate{}, delegate{updateAllnodes();}, dijkstra(bus.getClosestNode(), Destination));
         }
@@ -87,7 +91,7 @@ public class WaypointNavigator : MonoBehaviour
         _cBus = Instantiate(bus.gameObject, StartNode.transform.position, Quaternion.identity);
         _cBus.GetComponent<Car>().Init(delegate{}, delegate{updateAllnodes();}, dijkstra(StartNode, Destination));
         if(cars_inputfield.text == "") return;
-        summonCarsOnRanomNodes(car, int.Parse(cars_inputfield.text));
+        summonCarsOnRanomNodes(_carPrefab, int.Parse(cars_inputfield.text));
     }
 
     #region Pathfinding
@@ -162,7 +166,6 @@ public class WaypointNavigator : MonoBehaviour
                 return _path;    
             } 
             var neighbours = useOnlyAvailableNodes ? getAvailableNeighbours(currentNode) : getAllNeighbours(currentNode);
-            Debug.Log("c: " + currentNode + " :: " + neighbours);
             foreach(var n in neighbours) {
                 unvisited.Enqueue(n);
                 if(!distanceCost.ContainsKey(n)) {
@@ -181,11 +184,12 @@ public class WaypointNavigator : MonoBehaviour
     #endregion
 
     void summonCarsOnRanomNodes(Car car, int numberOfCars) {
+        var allNodes = FindObjectsByType<Node>(FindObjectsSortMode.None).ToList().Where(x => x != StartNode).ToList();
         for (int i = 0; i < numberOfCars; i++) {
-            var o = nodes.ElementAt(Random.Range(0, nodes.Count()));
-            var g = Instantiate(car, o.parentNode.transform.position, Quaternion.identity);
-            //TODO: RANDOMLY SELECT NODES AND THEN PATH TO THEM, THEN WAIT AND REPEAT
-            g.GetComponent<Car>().Init(delegate{}, delegate{updateAllnodes();}, dijkstra(o.parentNode, nodes.ElementAt(Random.Range(0, nodes.Count())).connectedNode));
+            var startNode = allNodes.ElementAt(Random.Range(0, allNodes.Count()));
+            var endNode = allNodes.Where(x => x != startNode).ElementAt(Random.Range(0, allNodes.Where(x => x != startNode).Count()));
+            var g = Instantiate(car, startNode.transform.position, Quaternion.identity);
+            g.GetComponent<Car>().Init(delegate{if(g.getClosestNode() == endNode) Destroy(g.gameObject); }, delegate{}, dijkstra(startNode, endNode));
         }
     }
 
@@ -197,6 +201,7 @@ public class WaypointNavigator : MonoBehaviour
         }
     }
 
+    #region Node operations
     public void ConnectNodeBack(Node node) {
         nodes.FindAll(x => x.parentNode == node).Except(availableNodes).ToList().ForEach(x => availableNodes.Add(x));
         nodes.FindAll(x => x.connectedNode == node).Except(availableNodes).ToList().ForEach(x => availableNodes.Add(x));
@@ -211,7 +216,9 @@ public class WaypointNavigator : MonoBehaviour
         if(!availableNodes.Any(x => x.parentNode== node1 && x.connectedNode == node2)) return;
         availableNodes.Remove(availableNodes.Find(x => x.parentNode== node1 && x.connectedNode == node2));
     }
+    #endregion
 
+    #region Gizmos
     private void OnDrawGizmos() {
         foreach(var connection in availableNodes) {
             drawLine(connection, Color.green);
@@ -221,7 +228,7 @@ public class WaypointNavigator : MonoBehaviour
         }
         Gizmos.color = Color.blue;
         foreach(var node in stops) {
-            Gizmos.DrawLine(node.transform.position, node.transform.position + Vector3.up);
+            Gizmos.DrawLine(node.transform.position, node.transform.position + Vector3.up*3);
         }
     }
 
@@ -235,4 +242,5 @@ public class WaypointNavigator : MonoBehaviour
         Gizmos.DrawLine(connection.connectedNode.transform.position, connection.connectedNode.transform.position - right);
         Gizmos.DrawLine(connection.connectedNode.transform.position, connection.connectedNode.transform.position - left);
     }
+    #endregion
 }

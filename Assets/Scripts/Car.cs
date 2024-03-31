@@ -31,13 +31,10 @@ public class Car : MonoBehaviour
     }
 
     public Node getClosestNode() {
-        var r = new List<float>(); 
-        FindObjectsOfType<Node>().ToList().ForEach(x => r.Add(Vector3.Distance(transform.position, x.transform.position)));
-        return FindObjectsOfType<Node>().ToList().Find(x => Vector3.Distance(transform.position, x.transform.position) == r.Min());
+        return FindObjectsOfType<Node>().ToList().Find(x => Vector3.Distance(transform.position, x.transform.position) <= 0.1f);
     }
 
     public IEnumerator moveObject(Node node, float desiredMoveTime) {
-        OnNodeReached?.Invoke();
         for(float i = 0; i < desiredMoveTime; i += Time.deltaTime) {
             while(Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 1) && hit.collider.gameObject.layer == LayerMask.NameToLayer("Car")) yield return null;
             transform.position = Vector3.Lerp(transform.position, node.transform.position, i/(desiredMoveTime*100));
@@ -46,6 +43,7 @@ public class Car : MonoBehaviour
         }
         transform.position = node.transform.position;
         OnNodeExited?.Invoke();
+        OnNodeReached?.Invoke();
         lastNode = node;
     }   
 
