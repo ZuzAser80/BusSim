@@ -1944,6 +1944,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2038,7 +2039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startSim: {fileID: 713616314}
-  bus: {fileID: 8158251930249533152, guid: 3b8bebb8aa97f41d3a2565c6a7a02daa, type: 3}
+  bus: {fileID: 0}
   _carPrefab: {fileID: 802929172709137182, guid: e1486a028316b4298bdac41c358991de, type: 3}
   nodeManipulator: {fileID: 652388088}
   cars_inputfield: {fileID: 1624572305}
@@ -2079,6 +2080,25 @@ MonoBehaviour:
     connectedNode: {fileID: 2118757482}
     MoveCost: 1
   stops: []
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11d7be0b2743841c3a2617f96be99f94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  firstBus: {fileID: 8158251930249533152, guid: 3b8bebb8aa97f41d3a2565c6a7a02daa, type: 3}
+  buses:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  _nameText: {fileID: 0}
+  _name: 
 --- !u!1 &1034210795
 GameObject:
   m_ObjectHideFlags: 0
@@ -4326,7 +4346,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5005410990473438678, guid: a99b57270d85b464391a046cbb0af104, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.2
+      value: -7.71
       objectReference: {fileID: 0}
     - target: {fileID: 5005410990473438678, guid: a99b57270d85b464391a046cbb0af104, type: 3}
       propertyPath: m_LocalRotation.w

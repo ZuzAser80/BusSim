@@ -11,10 +11,16 @@ public class Car : MonoBehaviour
 
     private List<Node> _path = new List<Node>();
     private Node lastNode;
+    public Transform nextBusPos;
 
     public void Init(Action onReached, Action onExited, List<Node> path) {
         OnNodeExited = onExited;
         OnNodeReached = onReached;
+        _path = path;
+        StartCoroutine(StartMoving());
+    }
+
+    public void Init(List<Node> path) {
         _path = path;
         StartCoroutine(StartMoving());
     }
@@ -25,7 +31,16 @@ public class Car : MonoBehaviour
         }
     }
 
+    public Node getLastNode() {
+        return lastNode;
+    }
+
+    public List<Node> getPath() {
+        return _path;
+    }
+
     public void returnToLastNode() {
+        Debug.Log("return: " + name + " :: to " + lastNode.name);
         StopCoroutine("moveObject");
         StartCoroutine(moveObject(lastNode, 5));
     }
@@ -42,8 +57,8 @@ public class Car : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
         transform.position = node.transform.position;
-        OnNodeExited?.Invoke();
         OnNodeReached?.Invoke();
+        OnNodeExited?.Invoke();
         lastNode = node;
     }   
 

@@ -34,10 +34,12 @@ public class WaypointNavigator : MonoBehaviour
     private List<NodeConnection> availableNodes = new List<NodeConnection>();
     private Dictionary<NodeConnection, int> carsDictionary = new Dictionary<NodeConnection, int>();
     private List<Car> buses = new List<Car>();
+    private BusController controller;
     
     private void Awake() {
         startSim.onClick.AddListener(startSimulation);
         nodes.ForEach(x => availableNodes.Add(x));
+        controller = GetComponent<BusController>();
         //stops = FindObjectsByType<Node>(FindObjectsSortMode.None).ToList();
     }
 
@@ -55,6 +57,10 @@ public class WaypointNavigator : MonoBehaviour
     }
     #endregion
 
+    private void Start() {
+        startSimulation();
+    }
+
     void Update()
     {
         if(Input.GetMouseButtonDown(0)) {
@@ -64,17 +70,22 @@ public class WaypointNavigator : MonoBehaviour
                 nodeManipulator.Init(node);
             }
         }
+        if(Input.GetKeyDown(KeyCode.Alpha4)) {
+            controller.detachBusesFrom(controller.buses.ElementAt(2));
+        }
     }
 
-    void updateAllnodes() {
+    IEnumerator updateAllnodes() {
         nodes.ForEach(x => carsDictionary[x] = updateNodeConnection(x));
         nodes.Where(x => carsDictionary[x] > 2).ToList().ForEach(x => availableNodes.Remove(x));
         nodes.Where(x => carsDictionary[x] <= 2).ToList().ForEach(x => availableNodes.Add(x));
         //SORT BY PRIORITY AND THEN PATHFIND FOR EVERY BUS
         //MAKE THIS METHOD BE CALLED ONCE PER SECOND
         foreach(var bus in buses) {
-            bus.Init(delegate{}, delegate{updateAllnodes();}, dijkstra(bus.getClosestNode(), Destination));
+            bus.Init(delegate{}, delegate{}, dijkstra(bus.getClosestNode(), Destination));
         }
+        yield return new WaitForSeconds(1);
+        StartCoroutine(updateAllnodes());
     }
 
     int updateNodeConnection(NodeConnection node) {
@@ -87,11 +98,14 @@ public class WaypointNavigator : MonoBehaviour
     }
 
     void startSimulation() {
-        updateAllnodes();
-        _cBus = Instantiate(bus.gameObject, StartNode.transform.position, Quaternion.identity);
-        _cBus.GetComponent<Car>().Init(delegate{}, delegate{updateAllnodes();}, dijkstra(StartNode, Destination));
+        //StopCoroutine(updateAllnodes());
+        controller.firstBus = Instantiate(controller.firstBus.gameObject, StartNode.transform.position, Quaternion.identity).GetComponent<Car>();
+        controller.InitController();
+        controller.firstBus.Init(dijkstra(StartNode, Destination));
+        //_cBus.GetComponent<Car>().Init(delegate{}, delegate{}, dijkstra(StartNode, Destination));
+        StartCoroutine(updateAllnodes());
         if(cars_inputfield.text == "") return;
-        summonCarsOnRanomNodes(_carPrefab, int.Parse(cars_inputfield.text));
+        StartCoroutine(summonCarsOnRanomNodes(_carPrefab, int.Parse(cars_inputfield.text)));
     }
 
     #region Pathfinding
@@ -183,14 +197,17 @@ public class WaypointNavigator : MonoBehaviour
     }
     #endregion
 
-    void summonCarsOnRanomNodes(Car car, int numberOfCars) {
+    IEnumerator summonCarsOnRanomNodes(Car car, int numberOfCars) {
         var allNodes = FindObjectsByType<Node>(FindObjectsSortMode.None).ToList().Where(x => x != StartNode).ToList();
         for (int i = 0; i < numberOfCars; i++) {
             var startNode = allNodes.ElementAt(Random.Range(0, allNodes.Count()));
             var endNode = allNodes.Where(x => x != startNode).ElementAt(Random.Range(0, allNodes.Where(x => x != startNode).Count()));
             var g = Instantiate(car, startNode.transform.position, Quaternion.identity);
-            g.GetComponent<Car>().Init(delegate{if(g.getClosestNode() == endNode) Destroy(g.gameObject); }, delegate{}, dijkstra(startNode, endNode));
+            g.GetComponent<Car>().Init(delegate{if(g.getClosestNode() == endNode) Destroy(g.gameObject); }, delegate{if(g.getPath().Count <= 0) Destroy(g.gameObject);}, dijkstra(startNode, endNode));
+            yield return new WaitForSeconds(1f);
         }
+        yield return new WaitForSeconds(Random.Range(1, 10));
+        StartCoroutine(summonCarsOnRanomNodes(car, Random.Range(2, 10)));
     }
 
     public void updateStop(Node node) {
