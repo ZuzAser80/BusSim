@@ -8,6 +8,7 @@ using TMPro;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [System.Serializable]
@@ -31,9 +32,10 @@ public class WaypointNavigator : MonoBehaviour
     public List<NodeConnection> nodes;
     private GameObject _cBus;
     public List<Node> stops = new List<Node>(); 
+    private List<Car> buses = new List<Car>();
     private List<NodeConnection> availableNodes = new List<NodeConnection>();
     private Dictionary<NodeConnection, int> carsDictionary = new Dictionary<NodeConnection, int>();
-    private List<Car> buses = new List<Car>();
+    private Dictionary<Node, Car> busesDestiantions = new Dictionary<Node, Car>();
     private BusController controller;
     
     private void Awake() {
@@ -59,6 +61,7 @@ public class WaypointNavigator : MonoBehaviour
 
     private void Start() {
         startSimulation();
+        StartCoroutine(updateAllnodes());
     }
 
     void Update()
@@ -80,10 +83,8 @@ public class WaypointNavigator : MonoBehaviour
         nodes.Where(x => carsDictionary[x] > 2).ToList().ForEach(x => availableNodes.Remove(x));
         nodes.Where(x => carsDictionary[x] <= 2).ToList().ForEach(x => availableNodes.Add(x));
         //SORT BY PRIORITY AND THEN PATHFIND FOR EVERY BUS
-        //MAKE THIS METHOD BE CALLED ONCE PER SECOND
-        foreach(var bus in buses) {
-            bus.Init(delegate{}, delegate{}, dijkstra(bus.getClosestNode(), Destination));
-        }
+        stops.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+        stops.Reverse();
         yield return new WaitForSeconds(1);
         StartCoroutine(updateAllnodes());
     }
@@ -100,10 +101,9 @@ public class WaypointNavigator : MonoBehaviour
     void startSimulation() {
         //StopCoroutine(updateAllnodes());
         controller.firstBus = Instantiate(controller.firstBus.gameObject, StartNode.transform.position, Quaternion.identity).GetComponent<Car>();
-        controller.InitController();
         controller.firstBus.Init(dijkstra(StartNode, Destination));
+        controller.InitController();
         //_cBus.GetComponent<Car>().Init(delegate{}, delegate{}, dijkstra(StartNode, Destination));
-        StartCoroutine(updateAllnodes());
         if(cars_inputfield.text == "") return;
         StartCoroutine(summonCarsOnRanomNodes(_carPrefab, int.Parse(cars_inputfield.text)));
     }
@@ -232,6 +232,28 @@ public class WaypointNavigator : MonoBehaviour
     public void RemoveConnection(Node node1, Node node2) {
         if(!availableNodes.Any(x => x.parentNode== node1 && x.connectedNode == node2)) return;
         availableNodes.Remove(availableNodes.Find(x => x.parentNode== node1 && x.connectedNode == node2));
+    }
+
+    public NodeConnection FindConnection(Node node1, Node node2) {
+        return nodes.Find(x => x.parentNode == node1 && x.connectedNode == node2);
+    }
+
+    public bool CheckIfConnectionAvailable(NodeConnection connection) {
+        return availableNodes.Contains(connection);
+    }
+    public Node GetHighestPriorityStop() {
+        var r = new List<float>();
+        stops.ForEach(x => r.Add(x.Priority));
+        return stops.Find(x => x.Priority == r.Max());
+    }
+
+    public void BusReroute(Car bus, Node startNode) {
+        if(dijkstra(startNode, GetHighestPriorityStop()).Count() > 0) {
+            bus.Init(dijkstra(startNode, GetHighestPriorityStop()));
+        } else {
+            Debug.Log("FFFUCK YOU");
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
     #endregion
 
