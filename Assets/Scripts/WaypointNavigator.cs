@@ -85,6 +85,10 @@ public class WaypointNavigator : MonoBehaviour
         //SORT BY PRIORITY AND THEN PATHFIND FOR EVERY BUS
         stops.Sort((x, y) => x.Priority.CompareTo(y.Priority));
         stops.Reverse();
+        //ITERATE OVER BUSES AND ASSIGN NEW PATHS
+        foreach(var l in buses) {
+            l.GetComponent<Car>().Init(dijkstra(l.getLastNode(), stops[buses.IndexOf(l)]));
+        }
         yield return new WaitForSeconds(1);
         StartCoroutine(updateAllnodes());
     }
