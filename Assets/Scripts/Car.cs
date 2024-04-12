@@ -69,6 +69,7 @@ public class Car : MonoBehaviour
         transform.position = node.transform.position;
         OnNodeReached?.Invoke();
         OnNodeExited?.Invoke();
+        StopCoroutine(moveObject(node, desiredMoveTime));
     }   
 
     private void OnDrawGizmos() {

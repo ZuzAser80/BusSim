@@ -32,10 +32,8 @@ public class WaypointNavigator : MonoBehaviour
     public List<NodeConnection> nodes;
     private GameObject _cBus;
     public List<Node> stops = new List<Node>(); 
-    private List<Car> buses = new List<Car>();
     private List<NodeConnection> availableNodes = new List<NodeConnection>();
     private Dictionary<NodeConnection, int> carsDictionary = new Dictionary<NodeConnection, int>();
-    private Dictionary<Car, Node> busesDestiantions = new Dictionary<Car, Node>();
     private BusController controller;
     
     private void Awake() {
@@ -62,9 +60,6 @@ public class WaypointNavigator : MonoBehaviour
     private void Start() {
         startSimulation();
         StartCoroutine(updateAllnodes());
-        for(int i = 0; i < 5; i++) {
-            buses.Add(Instantiate(controller.firstBus));
-        }
     }
 
     void Update()
@@ -89,17 +84,6 @@ public class WaypointNavigator : MonoBehaviour
         stops.Sort((x, y) => x.Priority.CompareTo(y.Priority));
         stops.Reverse();
         //ITERATE OVER BUSES AND ASSIGN NEW PATHS
-        foreach(var pair in busesDestiantions) {
-            if(pair.Key.getClosestNode() == pair.Value) {
-                Debug.Log("::: " + pair.Key + " :: has reached " + pair.Value);
-                Destroy(pair.Key.gameObject);
-            }
-        } 
-        foreach(var l in buses) {
-            if(busesDestiantions.ContainsKey(l)) continue;
-            l.GetComponent<Car>().Init(dijkstra(l.getLastNode(), stops[buses.IndexOf(l)]));
-            busesDestiantions[l] = stops[buses.IndexOf(l)];
-        }
         yield return new WaitForSeconds(1);
         StartCoroutine(updateAllnodes());
     }
@@ -117,7 +101,7 @@ public class WaypointNavigator : MonoBehaviour
         //StopCoroutine(updateAllnodes());
         controller.firstBus = Instantiate(controller.firstBus.gameObject, StartNode.transform.position, Quaternion.identity).GetComponent<Car>();
         controller.firstBus.Init(dijkstra(StartNode, Destination));
-        //controller.InitController();
+        controller.InitController();
         //_cBus.GetComponent<Car>().Init(delegate{}, delegate{}, dijkstra(StartNode, Destination));
         if(cars_inputfield.text == "") return;
         StartCoroutine(summonCarsOnRanomNodes(_carPrefab, int.Parse(cars_inputfield.text)));
@@ -256,6 +240,7 @@ public class WaypointNavigator : MonoBehaviour
     public bool CheckIfConnectionAvailable(NodeConnection connection) {
         return availableNodes.Contains(connection);
     }
+    
     public Node GetHighestPriorityStop() {
         var r = new List<float>();
         stops.ForEach(x => r.Add(x.Priority));

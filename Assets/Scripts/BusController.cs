@@ -22,7 +22,7 @@ public class BusController : MonoBehaviour
         for(int i = 0; i < buses.Count(); i++) {
             buses[i] = Instantiate(firstBus);
             buses[i].name += "::" + i;
-            Debug.Log(":: " + buses[i].name + "::" + i);
+            //Debug.Log(":: " + buses[i].name + "::" + i);
         }
         startBuses();
     }
@@ -32,7 +32,7 @@ public class BusController : MonoBehaviour
 
     void startBuses() {
         startBus(buses[0], firstBus);
-        //startBus(buses[1], buses[0]);
+        startBus(buses[1], buses[0]);
         // for(int i = 1; i < buses.Count(); i++) {
         //     Debug.Log("dbg: " + buses[i] + " : " + buses[i-1]);
         //     startBus(buses[i], buses[i-1]);
@@ -42,12 +42,12 @@ public class BusController : MonoBehaviour
     private void startBus(Car currentBus, Car prevBus) {
         currentBus.transform.parent = prevBus.nextBusPos;
         currentBus.transform.localPosition = Vector3.zero;
-        prevBus.reconnect += delegate {
-            Debug.Log(" : " + prevBus.name + " ::OnNodeExited " + currentBus.name);
+        prevBus.reconnect = delegate {
+            //Debug.Log(" : " + prevBus.name + " ::OnNodeExited " + currentBus.name);
             StartCoroutine(waitAndDo1(currentBus, prevBus));
         };
-        prevBus.OnNodeReached += delegate {
-            Debug.Log(" : " + prevBus.name + " Reached " + currentBus.name);
+        prevBus.OnNodeReached = delegate {
+            //Debug.Log(" : " + prevBus.name + " Reached " + currentBus.name);
             StartCoroutine(waitAndDo(currentBus, prevBus));
             
         };
@@ -55,24 +55,21 @@ public class BusController : MonoBehaviour
 
     IEnumerator waitAndDo(Car currentBus, Car prevBus) {
         currentBus.transform.parent = null;
-        Debug.Log(string.Format("Bus: {0}  Parent: {1}", currentBus.name, currentBus.transform.parent));
+        //Debug.Log(string.Format("Bus: {0}  Parent: {1}", currentBus.name, currentBus.transform.parent));
         if(prevBus.getPath().IndexOf(prevBus.getLastNode()) + 1 < 0 || prevBus.getPath().Count > prevBus.getPath().IndexOf(prevBus.getLastNode()) + 1) yield return null;
+        //Hardcoded 2.25 seconds. TODO: fix
         yield return currentBus.moveObject(prevBus.getLastNode(), 2f);
+        Debug.Log("waitAndDo: " + currentBus);
         prevBus.reconnect?.Invoke();
-        currentBus.OnNodeReached?.Invoke();
+        //currentBus.OnNodeReached?.Invoke();
     }
 
     IEnumerator waitAndDo1(Car currentBus, Car prevBus) {
         //rework later
-        yield return new WaitForSeconds(2.25f);
+        Debug.Log("Started waiting to glue: " + currentBus);
+        yield return new WaitUntil(() => Vector3.Distance(prevBus.nextBusPos.transform.position, prevBus.getLastNode().transform.position) <= 0.5f);
         //wait for Distance(prevBus.nextBusPos, prevBus.LastNode) <= 0.1f
-        if(nav.CheckIfConnectionAvailable(nav.FindConnection(prevBus.getLastNode(), prevBus.nextNode))) {
-            Debug.Log(currentBus + " : can move : " + prevBus.getLastNode() + " :: " + prevBus.nextNode);
-        } else {
-            Debug.Log("sutck stepbro");
-            //todo: find path in waypointnavigator
-            
-        }
+        Debug.Log("done waiting glueing again");
         currentBus.transform.parent = prevBus.nextBusPos;
         currentBus.transform.localRotation = Quaternion.Euler(Vector3.zero);
         currentBus.transform.localScale = Vector3.one;
