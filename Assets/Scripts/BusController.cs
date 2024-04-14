@@ -77,7 +77,9 @@ public class BusController : MonoBehaviour
         firstBus.reconnect = delegate {};
         buses.ForEach(x => {
             //Debug.Log("x: " + x);
-            x.transform.parent = null;
+            if(x.transform.parent != null) {
+                x.transform.parent = null;
+            }
             x.transform.rotation = Quaternion.Euler(Vector3.zero);
             x.transform.localScale = Vector3.one;
             x.OnNodeReached = delegate {};
@@ -102,9 +104,8 @@ public class BusController : MonoBehaviour
         bus.transform.parent = null;
         bus.transform.rotation = Quaternion.Euler(Vector3.zero);
         bus.transform.localScale = Vector3.one;
-        bus.transform.localPosition = Vector3.zero;
         //Rework the starter node
-        var path = nav.dijkstra(bus.getLastNode() == null ? bus.getClosestNode() : bus.getLastNode(), destination);
+        var path = nav.dijkstra(bus.getLastNode() == null ? firstBus.getLastNode() : bus.getLastNode(), destination);
         Debug.Log(":: " + path.Last());
         bus.Init(path);
     }
