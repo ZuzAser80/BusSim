@@ -209,11 +209,11 @@ public class WaypointNavigator : MonoBehaviour
         StartCoroutine(summonCarsOnRanomNodes(car, Random.Range(2, 10)));
     }
 
-    public void updateStop(Node node) {
-        if(stops.Contains(node)) {
-            stops.Remove(node);
-        } else {
+    public void updateStops(Node node) {
+        if(node.Priority > 0) {
             stops.Add(node);
+        } else if(stops.Contains(node)) {
+            stops.Remove(node);
         }
     }
 

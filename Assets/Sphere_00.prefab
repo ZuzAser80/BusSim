@@ -355,15 +355,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0c0ed4f525234eb4a3a4081fe082fb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Connections:
-  - ConnectedNode: {fileID: 0}
-    MoveCost: 0
-  - ConnectedNode: {fileID: 0}
-    MoveCost: 0
-  - ConnectedNode: {fileID: 0}
-    MoveCost: 0
   PrevNode: {fileID: 0}
   Light: 0
   Priority: 1
   nameDisplay: {fileID: 6808720181147284299}
+  IsAStop: 0
   displayName: RedNode

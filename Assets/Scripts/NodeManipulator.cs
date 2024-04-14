@@ -9,7 +9,6 @@ public class NodeManipulator : MonoBehaviour
     public Node node;
     [SerializeField] private TextMeshProUGUI nodeName;
     [SerializeField] private TMP_InputField AmountOfPeople;
-    [SerializeField] private Toggle isStop;
     private TMP_Dropdown trafficLightState;
 
     private void Awake() {
@@ -21,10 +20,11 @@ public class NodeManipulator : MonoBehaviour
         node = newNode;
         nodeName.text = node.displayName;
         trafficLightState.value = (int)node.Light;
-        isStop.isOn = node.IsAStop;
-        isStop.onValueChanged.AddListener(delegate{node.IsAStop = isStop;});
-        isStop.onValueChanged.AddListener(delegate{FindAnyObjectByType<WaypointNavigator>().updateStop(node);});
-        AmountOfPeople.onValueChanged.AddListener(delegate{node.Priority = int.Parse(AmountOfPeople.text);});
+        AmountOfPeople.text = "0";
+        AmountOfPeople.onValueChanged.AddListener(delegate{
+            node.Priority = int.Parse(AmountOfPeople.text);
+            FindObjectOfType<WaypointNavigator>().updateStops(node);
+        });
     }
 
     public void onTrafficLightChange() {
