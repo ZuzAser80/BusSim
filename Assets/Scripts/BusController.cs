@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 public class BusController : MonoBehaviour
@@ -70,21 +71,29 @@ public class BusController : MonoBehaviour
         currentBus.reconnect?.Invoke();
     }
 
-    public void detachBusesFrom(Car lastBus) {
-        var r = buses.GetRange(buses.IndexOf(lastBus), buses.Count - buses.IndexOf(lastBus)).ToList();
-        r[0].transform.parent = null;
-        r[0].transform.rotation = Quaternion.Euler(Vector3.zero);
-        r[0].transform.localScale = Vector3.one;
-        r[0].transform.localPosition = Vector3.zero;
-        r.ForEach(x => x.returnToLastNode());
+    public void DetachAllBuses() {
+        firstBus.OnNodeReached = delegate {};
+        firstBus.OnNodeExited = delegate {};
+        firstBus.reconnect = delegate {};
+        buses.ForEach(x => {
+            //Debug.Log("x: " + x);
+            x.transform.parent = null;
+            x.transform.rotation = Quaternion.Euler(Vector3.zero);
+            x.transform.localScale = Vector3.one;
+            x.OnNodeReached = delegate {};
+            x.OnNodeExited = delegate {};
+            x.reconnect = delegate {};
+            //x.transform.localPosition = Vector3.zero;
+        });
     }
 
     public void RerouteAllBuses(List<Node> stops) {
+        DetachAllBuses();
         int i = 0;
-        foreach (var bus in buses) {
-            RerouteBus(bus, stops[i]);
-            i += 1;
-            bus.transform.GetChild(0).transform.parent = null;
+        foreach (Node node in stops) {
+            if(i >= buses.Count) break;
+            RerouteBus(buses[i], node);
+            i++;
         }
 
     }
@@ -94,8 +103,9 @@ public class BusController : MonoBehaviour
         bus.transform.rotation = Quaternion.Euler(Vector3.zero);
         bus.transform.localScale = Vector3.one;
         bus.transform.localPosition = Vector3.zero;
-        var path = nav.dijkstra(bus.getLastNode(), destination);
-        Debug.Log(":: " + path.Count());
+        //Rework the starter node
+        var path = nav.dijkstra(bus.getLastNode() == null ? bus.getClosestNode() : bus.getLastNode(), destination);
+        Debug.Log(":: " + path.Last());
         bus.Init(path);
     }
 

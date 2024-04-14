@@ -73,7 +73,6 @@ public class WaypointNavigator : MonoBehaviour
         }
         if(Input.GetKeyDown(KeyCode.Alpha4)) {
             controller.RerouteAllBuses(stops);
-            controller.detachBusesFrom(controller.buses.ElementAt(2));
         }
     }
 
