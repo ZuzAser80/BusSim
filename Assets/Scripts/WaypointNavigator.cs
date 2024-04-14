@@ -58,7 +58,7 @@ public class WaypointNavigator : MonoBehaviour
     #endregion
 
     private void Start() {
-        startSimulation();
+        //startSimulation();
         StartCoroutine(updateAllnodes());
     }
 
@@ -72,6 +72,7 @@ public class WaypointNavigator : MonoBehaviour
             }
         }
         if(Input.GetKeyDown(KeyCode.Alpha4)) {
+            controller.RerouteAllBuses(stops);
             controller.detachBusesFrom(controller.buses.ElementAt(2));
         }
     }

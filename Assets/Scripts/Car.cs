@@ -49,7 +49,10 @@ public class Car : MonoBehaviour
 
     public void returnToLastNode() {
         Debug.Log("return: " + name + " :: to " + lastNode.name);
+        OnNodeExited = delegate {};
+        OnNodeReached = delegate {};
         StopCoroutine("moveObject");
+        //rethink:::
         StartCoroutine(moveObject(lastNode, 5));
     }
 

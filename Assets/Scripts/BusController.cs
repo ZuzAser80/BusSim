@@ -54,15 +54,15 @@ public class BusController : MonoBehaviour
         currentBus.transform.parent = null;
         if(prevBus.getPath().IndexOf(prevBus.getLastNode()) + 1 < 0 || prevBus.getPath().Count > prevBus.getPath().IndexOf(prevBus.getLastNode()) + 1) yield return null;
         yield return currentBus.moveObject(prevBus.getLastNode(), 2f);
-        Debug.Log("waitAndDo: " + currentBus);
+        //Debug.Log("waitAndDo: " + currentBus);
         prevBus.reconnect?.Invoke();
     }
 
     IEnumerator waitAndDo1(Car currentBus, Car prevBus) {
         //rework later
-        Debug.Log("Started waiting to glue: " + currentBus);
+        //Debug.Log("Started waiting to glue: " + currentBus);
         yield return new WaitUntil(() => Vector3.Distance(currentBus.transform.position, prevBus.nextBusPos.transform.position) <= 0.1f);
-        Debug.Log("done waiting glueing again :" + currentBus);
+        //Debug.Log("done waiting glueing again :" + currentBus);
         currentBus.transform.parent = prevBus.nextBusPos;
         currentBus.transform.localRotation = Quaternion.Euler(Vector3.zero);
         currentBus.transform.localScale = Vector3.one;
@@ -71,12 +71,32 @@ public class BusController : MonoBehaviour
     }
 
     public void detachBusesFrom(Car lastBus) {
-        for(int i = 0; i < buses.Count()-1; i++) {
-            Debug.Log(" : : " + Vector3.Distance(buses[i].transform.position, buses[i-1].transform.position));
-        }
         var r = buses.GetRange(buses.IndexOf(lastBus), buses.Count - buses.IndexOf(lastBus)).ToList();
+        r[0].transform.parent = null;
+        r[0].transform.rotation = Quaternion.Euler(Vector3.zero);
+        r[0].transform.localScale = Vector3.one;
+        r[0].transform.localPosition = Vector3.zero;
         r.ForEach(x => x.returnToLastNode());
-        r.ForEach(x => Debug.Log(": " + x));
+    }
+
+    public void RerouteAllBuses(List<Node> stops) {
+        int i = 0;
+        foreach (var bus in buses) {
+            RerouteBus(bus, stops[i]);
+            i += 1;
+            bus.transform.GetChild(0).transform.parent = null;
+        }
+
+    }
+
+    public void RerouteBus(Car bus, Node destination) {
+        bus.transform.parent = null;
+        bus.transform.rotation = Quaternion.Euler(Vector3.zero);
+        bus.transform.localScale = Vector3.one;
+        bus.transform.localPosition = Vector3.zero;
+        var path = nav.dijkstra(bus.getLastNode(), destination);
+        Debug.Log(":: " + path.Count());
+        bus.Init(path);
     }
 
 }
