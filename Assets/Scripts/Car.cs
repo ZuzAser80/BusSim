@@ -14,6 +14,7 @@ public class Car : MonoBehaviour
     private Node lastNode;
     public Node nextNode;
     public Transform nextBusPos;
+    public bool isFree = true;
 
     public void Init(Action onReached, Action onExited, List<Node> path) {
         OnNodeExited = onExited;
@@ -28,9 +29,12 @@ public class Car : MonoBehaviour
     }
 
     public IEnumerator StartMoving() {
+        isFree = false;
         foreach(var node in _path) {
             yield return StartCoroutine(moveObject(node, 5f));
         }
+        Debug.Log(name + " has stopped");
+        isFree = true;
     }
 
     public Node getLastNode() {

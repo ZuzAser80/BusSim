@@ -59,7 +59,7 @@ public class WaypointNavigator : MonoBehaviour
 
     private void Start() {
         //startSimulation();
-        StartCoroutine(updateAllnodes());
+        //StartCoroutine(updateAllnodes());
     }
 
     void Update()
@@ -71,9 +71,6 @@ public class WaypointNavigator : MonoBehaviour
                 nodeManipulator.Init(node);
             }
         }
-        if(Input.GetKeyDown(KeyCode.Alpha4)) {
-            controller.RerouteAllBuses(stops);
-        }
     }
 
     IEnumerator updateAllnodes() {
@@ -83,6 +80,14 @@ public class WaypointNavigator : MonoBehaviour
         //SORT BY PRIORITY AND THEN PATHFIND FOR EVERY BUS
         stops.Sort((x, y) => x.Priority.CompareTo(y.Priority));
         stops.Reverse();
+        Debug.Log(controller + " :: " + controller.buses.Where(x => x.isFree).Count());
+        // controller.buses.Where(x => x.isFree).ToList().ForEach(x => {
+        //     if(stops.Count() > controller.i+1) {
+        //         Debug.Log("nexNode: " + stops[controller.i+1]);
+        //         controller.RerouteBus(StartNode, x, stops[controller.i + 1]);
+        //         controller.i += 1;
+        //     }
+        // });
         //ITERATE OVER BUSES AND ASSIGN NEW PATHS
         yield return new WaitForSeconds(1);
         StartCoroutine(updateAllnodes());
@@ -98,11 +103,13 @@ public class WaypointNavigator : MonoBehaviour
     }
 
     void startSimulation() {
-        //StopCoroutine(updateAllnodes());
-        controller.firstBus = Instantiate(controller.firstBus.gameObject, StartNode.transform.position, Quaternion.identity).GetComponent<Car>();
-        controller.firstBus.Init(dijkstra(StartNode, Destination));
+        StopCoroutine(updateAllnodes());
+        controller.firstBus = Instantiate(bus.gameObject, StartNode.transform.position, Quaternion.identity).GetComponent<Car>();
+        //controller.firstBus.Init(dijkstra(StartNode, Destination));
         controller.InitController();
         //_cBus.GetComponent<Car>().Init(delegate{}, delegate{}, dijkstra(StartNode, Destination));
+        StartCoroutine(updateAllnodes());
+        controller.RerouteAllBuses(StartNode, stops);
         if(cars_inputfield.text == "") return;
         StartCoroutine(summonCarsOnRanomNodes(_carPrefab, int.Parse(cars_inputfield.text)));
     }

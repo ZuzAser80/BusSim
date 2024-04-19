@@ -1780,7 +1780,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startSim: {fileID: 713616314}
-  bus: {fileID: 0}
+  bus: {fileID: 8158251930249533152, guid: 3b8bebb8aa97f41d3a2565c6a7a02daa, type: 3}
   _carPrefab: {fileID: 802929172709137182, guid: e1486a028316b4298bdac41c358991de, type: 3}
   nodeManipulator: {fileID: 652388088}
   cars_inputfield: {fileID: 1624572305}
@@ -1818,14 +1818,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11d7be0b2743841c3a2617f96be99f94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstBus: {fileID: 8158251930249533152, guid: 3b8bebb8aa97f41d3a2565c6a7a02daa, type: 3}
   buses:
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   _nameText: {fileID: 0}
   _name: 
+  i: 0
 --- !u!1 &1034210795
 GameObject:
   m_ObjectHideFlags: 0

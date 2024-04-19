@@ -13,6 +13,7 @@ public class BusController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _nameText;
     [SerializeField] private string _name;
     private WaypointNavigator nav;
+    public int i = 0;
 
     private void Awake() {
         nav = GetComponent<WaypointNavigator>();
@@ -25,6 +26,7 @@ public class BusController : MonoBehaviour
             buses[i].name += "::" + i;
             //Debug.Log(":: " + buses[i].name + "::" + i);
         }
+        //buses.Add(firstBus);
         startBuses();
     }
     
@@ -47,7 +49,6 @@ public class BusController : MonoBehaviour
         };
         prevBus.OnNodeReached = delegate {
             StartCoroutine(waitAndDo(currentBus, prevBus));
-            
         };
     }
 
@@ -89,23 +90,25 @@ public class BusController : MonoBehaviour
         });
     }
 
-    public void RerouteAllBuses(List<Node> stops) {
+    public void RerouteAllBuses(Node startNode, List<Node> stops) {
         DetachAllBuses();
-        int i = 0;
-        foreach (Node node in stops) {
-            if(i >= buses.Count) break;
-            RerouteBus(buses[i], node);
+        if(firstBus.isFree) {RerouteBus(startNode, firstBus, stops[0]);}
+        for(int j = 1; j < stops.Count(); j++) {
+            if(i >= buses.Where(x => x.isFree).ToList().Count) break;
+            //if(!buses[i].isFree) continue; 
+            RerouteBus(startNode, buses.Where(x => x.isFree).ToList()[i], stops[j]);
             i++;
         }
 
     }
 
-    public void RerouteBus(Car bus, Node destination) {
+    public void RerouteBus(Node startNode, Car bus, Node destination) {
         bus.transform.parent = null;
         bus.transform.rotation = Quaternion.Euler(Vector3.zero);
         bus.transform.localScale = Vector3.one;
+        bus.transform.position = startNode.transform.position;
         //Rework the starter node
-        var path = nav.dijkstra(bus.getLastNode() == null ? firstBus.getLastNode() : bus.getLastNode(), destination);
+        var path = nav.dijkstra(startNode, destination);
         Debug.Log(":: " + path.Last());
         bus.Init(path);
     }
